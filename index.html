@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Probability Calculators</title>
+  <title>Decision Calculators</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -28,655 +28,357 @@
       --sans: 'IBM Plex Sans', sans-serif;
     }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
 
-    /* Grid background */
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+      position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
       background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
     }
 
-    /* Header */
-    header {
-      position: relative;
-      z-index: 10;
-      padding: 2rem 2rem 0;
-      border-bottom: 1px solid var(--border);
-      background: rgba(10,12,15,0.9);
-      backdrop-filter: blur(20px);
-    }
+    header { position: relative; z-index: 10; padding: 2rem 2rem 0; border-bottom: 1px solid var(--border); background: rgba(10,12,15,0.9); backdrop-filter: blur(20px); }
+    .header-inner { max-width: 1100px; margin: 0 auto; }
+    .logo { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem; }
+    h1 { font-family: var(--mono); font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+    h1 span { color: var(--accent); }
+    .header-sub { font-size: 0.82rem; color: var(--text3); margin-bottom: 1.5rem; }
 
-    .header-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .logo {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
-      color: var(--accent);
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
-    h1 {
-      font-family: var(--mono);
-      font-size: clamp(1.4rem, 3vw, 2rem);
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: -0.02em;
-      margin-bottom: 1.5rem;
-    }
-
-    h1 span {
-      color: var(--accent);
-    }
-
-    /* Nav tabs */
-    nav {
-      display: flex;
-      gap: 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
+    nav { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
     nav::-webkit-scrollbar { display: none; }
-
-    .tab-btn {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      padding: 0.75rem 1.25rem;
-      background: transparent;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--text3);
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      position: relative;
-    }
-
+    .tab-btn { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.75rem 1.1rem; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text3); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .tab-btn:hover { color: var(--text2); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn .tab-num { font-size: 0.6rem; opacity: 0.4; margin-right: 0.35rem; }
 
-    .tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
-
-    .tab-btn .tab-num {
-      font-size: 0.6rem;
-      opacity: 0.5;
-      margin-right: 0.4rem;
-    }
-
-    /* Main layout */
-    main {
-      position: relative;
-      z-index: 1;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
+    main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 2rem; }
     .calculator { display: none; }
-    .calculator.active { display: block; }
+    .calculator.active { display: block; animation: fadeIn 0.25s ease; }
 
-    /* Calculator layout */
-    .calc-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      align-items: start;
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 700px) { .calc-grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 1.5rem; }
+    .card-title { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .card-title::before { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+    .field { margin-bottom: 1rem; }
+    label { display: block; font-family: var(--mono); font-size: 0.7rem; color: var(--text2); margin-bottom: 0.4rem; letter-spacing: 0.04em; }
+    input[type="number"], input[type="text"], select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 2px;
+      padding: 0.6rem 0.75rem; color: var(--text); font-family: var(--mono); font-size: 0.88rem;
+      outline: none; transition: border-color 0.2s; -moz-appearance: textfield;
     }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,170,0.07); }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a5568' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; cursor: pointer; }
+    .hint { font-size: 0.65rem; color: var(--text3); margin-top: 0.3rem; font-family: var(--mono); line-height: 1.4; }
 
-    @media (max-width: 700px) {
-      .calc-grid { grid-template-columns: 1fr; }
-    }
+    .outcomes-header { display: grid; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .outcomes-header span { font-family: var(--mono); font-size: 0.62rem; color: var(--text3); letter-spacing: 0.05em; text-transform: uppercase; }
+    .outcome-row { display: grid; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
 
-    /* Cards */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 1.5rem;
-    }
-
-    .card-title {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text3);
-      margin-bottom: 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .card-title::before {
-      content: '';
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      background: var(--accent);
-      border-radius: 50%;
-    }
-
-    /* Form elements */
-    .field {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text2);
-      margin-bottom: 0.4rem;
-      letter-spacing: 0.05em;
-    }
-
-    input[type="number"], select {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border2);
-      border-radius: 2px;
-      padding: 0.6rem 0.75rem;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-      -moz-appearance: textfield;
-    }
-
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-
-    input[type="number"]:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0,212,170,0.08);
-    }
-
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a5568' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      cursor: pointer;
-    }
-
-    .hint {
-      font-size: 0.65rem;
-      color: var(--text3);
-      margin-top: 0.3rem;
-      font-family: var(--mono);
-    }
-
-    /* Outcome rows */
-    .outcomes-header {
-      display: grid;
-      grid-template-columns: 1fr 1fr 28px;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .outcomes-header span {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--text3);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .outcome-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 28px;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      align-items: center;
-    }
-
-    .btn-remove {
-      background: transparent;
-      border: 1px solid var(--border2);
-      border-radius: 2px;
-      color: var(--text3);
-      cursor: pointer;
-      width: 28px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      transition: all 0.15s;
-      line-height: 1;
-    }
-
+    .btn-remove { background: transparent; border: 1px solid var(--border2); border-radius: 2px; color: var(--text3); cursor: pointer; width: 28px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.15s; }
     .btn-remove:hover { color: var(--negative); border-color: var(--negative); }
-
-    .btn-add {
-      background: transparent;
-      border: 1px dashed var(--border2);
-      border-radius: 2px;
-      color: var(--text3);
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      padding: 0.5rem;
-      width: 100%;
-      cursor: pointer;
-      transition: all 0.15s;
-      letter-spacing: 0.05em;
-      margin-top: 0.25rem;
-    }
-
+    .btn-add { background: transparent; border: 1px dashed var(--border2); border-radius: 2px; color: var(--text3); font-family: var(--mono); font-size: 0.7rem; padding: 0.5rem; width: 100%; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; margin-top: 0.25rem; }
     .btn-add:hover { color: var(--accent); border-color: var(--accent); }
-
-    /* Calculate button */
-    .btn-calc {
-      width: 100%;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 2px;
-      padding: 0.75rem;
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 1.25rem;
-    }
-
+    .btn-calc { width: 100%; background: var(--accent); color: #000; border: none; border-radius: 2px; padding: 0.75rem; font-family: var(--mono); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 1.25rem; }
     .btn-calc:hover { background: #00f0c0; transform: translateY(-1px); }
     .btn-calc:active { transform: translateY(0); }
 
-    /* Results */
-    .result-panel {
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 2px;
-      padding: 1.5rem;
-      min-height: 200px;
-    }
-
-    .result-empty {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 150px;
-      color: var(--text3);
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .result-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-
+    .result-panel { background: var(--surface2); border: 1px solid var(--border2); border-radius: 2px; padding: 1.5rem; min-height: 220px; }
+    .result-empty { display: flex; align-items: center; justify-content: center; height: 160px; color: var(--text3); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
+    .result-item { display: flex; justify-content: space-between; align-items: baseline; padding: 0.55rem 0; border-bottom: 1px solid var(--border); gap: 1rem; }
     .result-item:last-child { border-bottom: none; }
-
-    .result-label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text2);
-      letter-spacing: 0.05em;
-    }
-
-    .result-value {
-      font-family: var(--mono);
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
+    .result-label { font-family: var(--mono); font-size: 0.68rem; color: var(--text2); letter-spacing: 0.04em; flex-shrink: 0; }
+    .result-value { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; color: var(--text); text-align: right; }
     .result-value.positive { color: var(--positive); }
     .result-value.negative { color: var(--negative); }
     .result-value.neutral { color: var(--accent2); }
     .result-value.highlight { color: var(--accent4); }
+    .result-value.warning { color: var(--accent3); }
 
-    .result-big {
-      text-align: center;
-      padding: 1.5rem 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 0.5rem;
-    }
+    .result-big { text-align: center; padding: 1.25rem 0; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+    .result-big-label { font-family: var(--mono); font-size: 0.62rem; color: var(--text3); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .result-big-value { font-family: var(--mono); font-size: 2rem; font-weight: 600; }
 
-    .result-big-label {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--text3);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 0.4rem;
-    }
+    .verdict { margin-top: 1rem; padding: 0.75rem; border-radius: 2px; font-family: var(--mono); font-size: 0.72rem; line-height: 1.6; }
+    .verdict.positive { background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.2); color: var(--positive); }
+    .verdict.negative { background: rgba(255,77,109,0.07); border: 1px solid rgba(255,77,109,0.2); color: var(--negative); }
+    .verdict.neutral { background: rgba(0,153,255,0.07); border: 1px solid rgba(0,153,255,0.2); color: var(--accent2); }
+    .verdict.warning { background: rgba(255,107,53,0.07); border: 1px solid rgba(255,107,53,0.2); color: var(--accent3); }
 
-    .result-big-value {
-      font-family: var(--mono);
-      font-size: 2.2rem;
-      font-weight: 600;
-    }
+    .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+    .formula { display: inline-block; background: var(--surface2); border: 1px solid var(--border2); border-radius: 2px; padding: 0.2rem 0.5rem; font-family: var(--mono); font-size: 0.68rem; color: var(--accent2); margin: 0.2rem 0; }
+    .calc-desc { font-size: 0.82rem; color: var(--text2); line-height: 1.65; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .example-pill { display: inline-block; background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 0.2rem 0.65rem; font-size: 0.68rem; font-family: var(--mono); color: var(--text3); margin: 0.2rem 0.15rem 0 0; cursor: pointer; transition: all 0.15s; }
+    .example-pill:hover { color: var(--accent); border-color: var(--accent); }
 
-    .verdict {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 2px;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      line-height: 1.5;
-    }
+    .kelly-compare { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
+    .kelly-box { background: var(--bg); border: 1px solid var(--border2); border-radius: 2px; padding: 0.75rem 0.5rem; text-align: center; }
+    .kelly-box.selected { border-color: var(--accent); background: rgba(0,212,170,0.06); }
+    .kelly-box-label { font-family: var(--mono); font-size: 0.6rem; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.3rem; }
+    .kelly-box-val { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; color: var(--accent); }
+    .kelly-box-pct { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); margin-top: 0.2rem; }
 
-    .verdict.positive { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.2); color: var(--positive); }
-    .verdict.negative { background: rgba(255,77,109,0.08); border: 1px solid rgba(255,77,109,0.2); color: var(--negative); }
-    .verdict.neutral { background: rgba(0,153,255,0.08); border: 1px solid rgba(0,153,255,0.2); color: var(--accent2); }
+    .checklist-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: 2px; margin-bottom: 0.5rem; background: var(--bg); cursor: pointer; transition: border-color 0.15s; }
+    .checklist-item.checked { border-color: rgba(0,212,170,0.3); background: rgba(0,212,170,0.04); }
+    .checklist-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; margin-top: 1px; cursor: pointer; }
+    .checklist-item-text { font-family: var(--mono); font-size: 0.72rem; color: var(--text2); line-height: 1.5; }
+    .sc-score-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 0.5rem 0; }
+    .sc-score-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
 
-    /* Kelly options */
-    .kelly-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
+    .base-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+    .base-tile { background: var(--bg); border: 1px solid var(--border2); border-radius: 2px; padding: 0.6rem; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+    .base-tile:hover { border-color: var(--accent); }
+    .base-tile-label { font-family: var(--mono); font-size: 0.58rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+    .base-tile-val { font-family: var(--mono); font-size: 0.9rem; font-weight: 600; color: var(--accent); }
 
-    .kelly-option {
-      padding: 0.5rem;
-      border: 1px solid var(--border2);
-      border-radius: 2px;
-      background: var(--bg);
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
+    .error { color: var(--negative); font-family: var(--mono); font-size: 0.72rem; padding: 0.6rem 0.75rem; border: 1px solid rgba(255,77,109,0.2); background: rgba(255,77,109,0.05); border-radius: 2px; }
 
-    .kelly-option:hover { border-color: var(--accent); }
-    .kelly-option.selected { border-color: var(--accent); background: rgba(0,212,170,0.08); }
-
-    .kelly-option-label {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--text2);
-      letter-spacing: 0.05em;
-      display: block;
-      margin-bottom: 0.2rem;
-    }
-
-    .kelly-option-val {
-      font-family: var(--mono);
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--accent);
-    }
-
-    /* Description */
-    .calc-desc {
-      font-size: 0.8rem;
-      color: var(--text2);
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--sans);
-    }
-
-    .formula {
-      display: inline-block;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 2px;
-      padding: 0.2rem 0.5rem;
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--accent2);
-      margin: 0.25rem 0;
-    }
-
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 1rem 0;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .result-panel { animation: fadeIn 0.3s ease; }
-    .calculator.active { animation: fadeIn 0.25s ease; }
-
-    /* Error */
-    .error {
-      color: var(--negative);
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      padding: 0.5rem;
-      border: 1px solid rgba(255,77,109,0.2);
-      background: rgba(255,77,109,0.05);
-      border-radius: 2px;
-      margin-top: 0.5rem;
-    }
   </style>
 </head>
 <body>
 
 <header>
   <div class="header-inner">
-    <div class="logo">▸ Probability &amp; Betting Calculators</div>
-    <h1>Expected <span>Edge</span></h1>
+    <div class="logo">▸ Decision Science Tools</div>
+    <h1>The Hidden <span>Math</span></h1>
+    <p class="header-sub">Six mental models for making better decisions — career, money, health, and everything in between</p>
     <nav>
-      <button class="tab-btn active" onclick="showTab('ev')"><span class="tab-num">01</span>Expected Value</button>
-      <button class="tab-btn" onclick="showTab('base')"><span class="tab-num">02</span>Base Rates</button>
-      <button class="tab-btn" onclick="showTab('bayes')"><span class="tab-num">03</span>Bayesian</button>
-      <button class="tab-btn" onclick="showTab('kelly')"><span class="tab-num">04</span>Kelly Criterion</button>
+      <button class="tab-btn active" onclick="showTab('ev',this)"><span class="tab-num">01</span>Expected Value</button>
+      <button class="tab-btn" onclick="showTab('base',this)"><span class="tab-num">02</span>Base Rates</button>
+      <button class="tab-btn" onclick="showTab('bayes',this)"><span class="tab-num">03</span>Bayesian Update</button>
+      <button class="tab-btn" onclick="showTab('sunk',this)"><span class="tab-num">04</span>Sunk Cost</button>
+      <button class="tab-btn" onclick="showTab('kelly',this)"><span class="tab-num">05</span>Kelly Criterion</button>
+      <button class="tab-btn" onclick="showTab('surv',this)"><span class="tab-num">06</span>Survivorship Bias</button>
     </nav>
   </div>
 </header>
 
 <main>
 
-  <!-- ── 01 EXPECTED VALUE ── -->
+  <!-- 01 EXPECTED VALUE -->
   <div id="calc-ev" class="calculator active">
     <p class="calc-desc">
-      Expected Value (EV) is the probability-weighted average of all possible outcomes.
-      A positive EV indicates a bet worth taking in the long run.
-      <br><span class="formula">EV = Σ (probability × outcome)</span>
+      Any decision has possible outcomes. Each has a probability and a payoff. Multiply them together and add — that's Expected Value.
+      Positive EV means the decision is worth taking on average, even if individual outcomes vary. Most people never calculate this. They just go with their gut and wonder why they're stuck.
+      <br><br><span class="formula">EV = Σ (probability × payoff)</span>
+      <br><br><strong style="font-family:var(--mono);font-size:0.7rem;color:var(--text3);letter-spacing:0.08em">LOAD EXAMPLE:</strong>&nbsp;
+      <span class="example-pill" onclick="loadEvExample('job')">Job offer</span>
+      <span class="example-pill" onclick="loadEvExample('investment')">Investment</span>
+      <span class="example-pill" onclick="loadEvExample('coin')">Coin flip bet</span>
     </p>
     <div class="calc-grid">
       <div class="card">
         <div class="card-title">Inputs</div>
-
         <div class="field">
-          <label>Odds Format</label>
-          <select id="ev-format" onchange="updateEvFormat()">
-            <option value="decimal">Decimal (1.90)</option>
-            <option value="american">American (+110 / -110)</option>
-            <option value="fractional">Fractional (9/10)</option>
+          <label>Decision / Context (optional)</label>
+          <input type="text" id="ev-context" placeholder="e.g. Accept the startup job offer?">
+        </div>
+        <div class="field">
+          <label>Payoff Unit</label>
+          <select id="ev-unit">
+            <option value="$">$ Money</option>
+            <option value="€">€ Money</option>
+            <option value="util">Utility (abstract 1–100)</option>
+            <option value="hrs">Hours</option>
           </select>
         </div>
-
-        <div class="field">
-          <label>Your Stake (€)</label>
-          <input type="number" id="ev-stake" value="100" min="0" step="1">
-        </div>
-
         <div class="divider"></div>
-
         <div class="card-title">Outcomes</div>
-        <div class="outcomes-header">
-          <span>Odds</span>
-          <span>Your Prob (%)</span>
-          <span></span>
+        <div class="outcomes-header" style="grid-template-columns:2fr 1.2fr 1.2fr 28px">
+          <span>Outcome</span><span>Prob (%)</span><span>Payoff</span><span></span>
         </div>
         <div id="ev-outcomes"></div>
         <button class="btn-add" onclick="addEvOutcome()">+ Add Outcome</button>
-        <div id="ev-prob-warning"></div>
-
-        <button class="btn-calc" onclick="calcEV()">Calculate EV</button>
+        <button class="btn-calc" onclick="calcEV()">Calculate Expected Value</button>
       </div>
-
-      <div class="card result-panel" id="ev-result">
-        <div class="result-empty">awaiting input</div>
-      </div>
+      <div class="card result-panel" id="ev-result"><div class="result-empty">awaiting input</div></div>
     </div>
   </div>
 
-  <!-- ── 02 BASE RATES ── -->
+  <!-- 02 BASE RATES -->
   <div id="calc-base" class="calculator">
     <p class="calc-desc">
-      Convert between implied probability and odds, accounting for bookmaker margin (vig/juice).
-      Strips the margin to reveal the true implied probability and your required edge to beat the market.
-      <br><span class="formula">Implied Prob = 1 / Decimal Odds</span> &nbsp;
-      <span class="formula">Margin = Σ Implied Probs − 1</span>
+      Before trusting any specific data point, anchor on the base rate — how often does this type of thing actually happen?
+      A positive test result means less than you think when the underlying condition is rare. Most people (including most doctors) get this wrong.
+      <br><br><span class="formula">P(condition | positive test) = (TPR × base rate) / P(positive)</span>
+      <br><br><strong style="font-family:var(--mono);font-size:0.7rem;color:var(--text3);letter-spacing:0.08em">LOAD EXAMPLE:</strong>&nbsp;
+      <span class="example-pill" onclick="loadBaseExample('medical')">Medical test</span>
+      <span class="example-pill" onclick="loadBaseExample('startup')">Startup idea</span>
+      <span class="example-pill" onclick="loadBaseExample('fund')">Fund performance</span>
     </p>
     <div class="calc-grid">
       <div class="card">
-        <div class="card-title">Inputs</div>
-
+        <div class="card-title">Base Rate Analysis</div>
         <div class="field">
-          <label>Odds Format</label>
-          <select id="br-format" onchange="updateBrFormat()">
-            <option value="decimal">Decimal</option>
-            <option value="american">American</option>
-            <option value="fractional">Fractional</option>
-          </select>
+          <label>Base Rate — how common is the underlying condition? (%)</label>
+          <input type="number" id="br-baserate" placeholder="e.g. 0.1" min="0.0001" max="100" step="0.001">
+          <div class="hint">e.g. 0.1% = 1 in 1,000 people have the disease · 6% = startup success rate</div>
         </div>
-
-        <div class="divider"></div>
-
-        <div class="card-title">Market Sides</div>
-        <div class="outcomes-header">
-          <span>Side</span>
-          <span>Odds</span>
-          <span></span>
-        </div>
-        <div id="br-sides"></div>
-        <button class="btn-add" onclick="addBrSide()">+ Add Side</button>
-
-        <div class="divider"></div>
-
         <div class="field">
-          <label>Your True Probability (%)</label>
-          <input type="number" id="br-true-prob" placeholder="e.g. 55" min="0" max="100" step="0.1">
-          <div class="hint">Your assessed probability for the first side</div>
+          <label>True Positive Rate — if it's true, how often does the signal fire? (%)</label>
+          <input type="number" id="br-tpr" placeholder="e.g. 99" min="0.01" max="100" step="0.1">
         </div>
-
-        <button class="btn-calc" onclick="calcBaseRates()">Calculate</button>
+        <div class="field">
+          <label>False Positive Rate — if it's false, how often does the signal fire anyway? (%)</label>
+          <input type="number" id="br-fpr" placeholder="e.g. 1" min="0.01" max="100" step="0.1">
+        </div>
+        <div class="field">
+          <label>Your Gut Estimate after a positive result (%)</label>
+          <input type="number" id="br-intuition" placeholder="e.g. 95" min="0" max="100" step="1">
+          <div class="hint">Optional — used to show how far off intuition typically lands</div>
+        </div>
+        <button class="btn-calc" onclick="calcBaseRates()">Calculate True Probability</button>
       </div>
-
-      <div class="card result-panel" id="br-result">
-        <div class="result-empty">awaiting input</div>
-      </div>
+      <div class="card result-panel" id="br-result"><div class="result-empty">awaiting input</div></div>
     </div>
   </div>
 
-  <!-- ── 03 BAYESIAN ── -->
+  <!-- 03 BAYESIAN UPDATE -->
   <div id="calc-bayes" class="calculator">
     <p class="calc-desc">
-      Update your probability estimate with new evidence using Bayes' theorem.
-      Start with a prior belief, then revise it based on how likely the evidence is under each hypothesis.
-      <br><span class="formula">P(H|E) = P(E|H) × P(H) / P(E)</span>
+      Bayes' theorem is the mathematically correct way to change your mind.
+      Start with a prior belief, observe evidence, and update proportionally.
+      Not by ignoring evidence — and not by overreacting. The strength of your update should match the strength of the evidence.
+      <br><br><span class="formula">P(H|E) = P(E|H) × P(H) / P(E)</span>
+      <br><br><strong style="font-family:var(--mono);font-size:0.7rem;color:var(--text3);letter-spacing:0.08em">LOAD EXAMPLE:</strong>&nbsp;
+      <span class="example-pill" onclick="loadBayesExample('quit')">Coworker quitting</span>
+      <span class="example-pill" onclick="loadBayesExample('lie')">CV fraud</span>
+      <span class="example-pill" onclick="loadBayesExample('success')">Project success</span>
     </p>
     <div class="calc-grid">
       <div class="card">
         <div class="card-title">Prior Belief</div>
-
+        <div class="field">
+          <label>Hypothesis (optional label)</label>
+          <input type="text" id="b-hypothesis" placeholder="e.g. My coworker is about to quit">
+        </div>
         <div class="field">
           <label>Prior Probability — P(H) (%)</label>
-          <input type="number" id="b-prior" value="50" min="0.01" max="99.99" step="0.1">
-          <div class="hint">Your initial estimate before evidence</div>
+          <input type="number" id="b-prior" value="10" min="0.01" max="99.99" step="0.1">
+          <div class="hint">Your starting belief before the new evidence</div>
         </div>
-
         <div class="divider"></div>
-        <div class="card-title">Evidence</div>
-
+        <div class="card-title">New Evidence</div>
         <div class="field">
-          <label>Likelihood if True — P(E|H) (%)</label>
-          <input type="number" id="b-lh-true" value="80" min="0.01" max="100" step="0.1">
-          <div class="hint">How likely is the evidence if the hypothesis IS true?</div>
+          <label>Evidence Observed (optional label)</label>
+          <input type="text" id="b-evidence" placeholder="e.g. She updated her LinkedIn profile">
         </div>
-
         <div class="field">
-          <label>Likelihood if False — P(E|¬H) (%)</label>
-          <input type="number" id="b-lh-false" value="20" min="0.01" max="100" step="0.1">
-          <div class="hint">How likely is the evidence if the hypothesis is NOT true?</div>
+          <label>P(E|H) — how likely is this evidence IF the hypothesis is true? (%)</label>
+          <input type="number" id="b-lh-true" value="70" min="0.01" max="100" step="0.1">
         </div>
-
+        <div class="field">
+          <label>P(E|¬H) — how likely is this evidence even if the hypothesis is false? (%)</label>
+          <input type="number" id="b-lh-false" value="15" min="0.01" max="100" step="0.1">
+        </div>
         <button class="btn-calc" onclick="calcBayes()">Update Belief</button>
       </div>
-
-      <div class="card result-panel" id="bayes-result">
-        <div class="result-empty">awaiting input</div>
-      </div>
+      <div class="card result-panel" id="bayes-result"><div class="result-empty">awaiting input</div></div>
     </div>
   </div>
 
-  <!-- ── 04 KELLY CRITERION ── -->
+  <!-- 04 SUNK COST -->
+  <div id="calc-sunk" class="calculator">
+    <p class="calc-desc">
+      Sunk costs are gone regardless of what you decide next. Staying in a bad job because you've already been there 5 years, holding a losing investment because you're down 50%, staying in a relationship because of history — these are all sunk cost traps.
+      The only question that matters: <em style="color:var(--text)">"Would I choose this today if I were starting from scratch?"</em>
+      <br><br><span class="formula">Decision = f(future value) — past investment is irrelevant</span>
+    </p>
+    <div class="calc-grid">
+      <div class="card">
+        <div class="card-title">Your Situation</div>
+        <div class="field">
+          <label>What are you considering walking away from?</label>
+          <input type="text" id="sc-situation" placeholder="e.g. A job I've been in for 5 years">
+        </div>
+        <div class="field">
+          <label>What have you already invested? (sunk cost)</label>
+          <input type="text" id="sc-invested" placeholder="e.g. 5 years, €40,000 in training, emotional energy">
+        </div>
+        <div class="divider"></div>
+        <div class="card-title">Forward-Looking Numbers</div>
+        <div class="field">
+          <label>If starting from zero today, probability you'd choose this path (%)</label>
+          <input type="number" id="sc-fresh" min="0" max="100" step="1" placeholder="e.g. 25">
+          <div class="hint">Pretend the history doesn't exist — would you still choose this?</div>
+        </div>
+        <div class="field">
+          <label>Expected value of staying (next 12 months)</label>
+          <input type="number" id="sc-stay-ev" placeholder="e.g. 80000" step="1">
+        </div>
+        <div class="field">
+          <label>Expected value of best alternative (next 12 months)</label>
+          <input type="number" id="sc-alt-ev" placeholder="e.g. 120000" step="1">
+        </div>
+        <div class="field">
+          <label>Unit</label>
+          <select id="sc-unit">
+            <option value="$">$ Money</option>
+            <option value="€">€ Money</option>
+            <option value="util">Utility (1–100 scale)</option>
+            <option value="hrs">Hours of meaningful work</option>
+          </select>
+        </div>
+        <div class="divider"></div>
+        <div class="card-title">Sunk Cost Checklist</div>
+        <div id="sc-checklist"></div>
+        <button class="btn-calc" onclick="calcSunkCost()">Evaluate Decision</button>
+      </div>
+      <div class="card result-panel" id="sc-result"><div class="result-empty">awaiting input</div></div>
+    </div>
+  </div>
+
+  <!-- 05 KELLY CRITERION -->
   <div id="calc-kelly" class="calculator">
     <p class="calc-desc">
-      The Kelly Criterion finds the optimal fraction of your bankroll to bet to maximise long-run growth.
-      Half Kelly and Quarter Kelly are common risk-adjusted variants.
-      <br><span class="formula">f* = (bp − q) / b</span>&nbsp; where b = decimal odds − 1, p = win prob, q = 1 − p
+      Once you've found a genuinely good opportunity, how much should you commit? Too little and you leave money on the table. Too much and variance destroys you before the math pays off.
+      Kelly finds the optimal fraction. Most practitioners use Half or Quarter Kelly for the emotional sustainability.
+      This applies to money, time, career capital — any resource you can allocate more or less of.
+      <br><br><span class="formula">f* = (p × b − q) / b</span>&nbsp;&nbsp;where b = net payoff ratio, p = win prob, q = 1 − p
+      <br><br><strong style="font-family:var(--mono);font-size:0.7rem;color:var(--text3);letter-spacing:0.08em">LOAD EXAMPLE:</strong>&nbsp;
+      <span class="example-pill" onclick="loadKellyExample('invest')">Investment allocation</span>
+      <span class="example-pill" onclick="loadKellyExample('career')">Career pivot</span>
+      <span class="example-pill" onclick="loadKellyExample('project')">Side project time</span>
     </p>
     <div class="calc-grid">
       <div class="card">
         <div class="card-title">Inputs</div>
-
         <div class="field">
-          <label>Odds Format</label>
-          <select id="k-format" onchange="updateKellyFormat()">
-            <option value="decimal">Decimal</option>
-            <option value="american">American</option>
-            <option value="fractional">Fractional</option>
+          <label>Resource Type</label>
+          <select id="k-resource">
+            <option value="money">Money / Capital</option>
+            <option value="time">Time (hours/week)</option>
+            <option value="career">Career focus (%)</option>
+            <option value="custom">Custom</option>
           </select>
         </div>
-
         <div class="field">
-          <label id="k-odds-label">Decimal Odds</label>
-          <input type="number" id="k-odds" value="2.00" step="0.01" min="1.001">
+          <label>Total Resource Available</label>
+          <input type="number" id="k-bankroll" value="10000" min="1" step="1">
+          <div class="hint">e.g. total savings in €, weekly hours, % of professional focus</div>
         </div>
-
         <div class="field">
-          <label>Your Win Probability (%)</label>
-          <input type="number" id="k-prob" value="55" min="0.01" max="99.99" step="0.1">
+          <label>Win / Success Probability (%)</label>
+          <input type="number" id="k-prob" value="60" min="0.01" max="99.99" step="0.1">
+          <div class="hint">Your honest estimate — be calibrated, not optimistic</div>
         </div>
-
         <div class="field">
-          <label>Bankroll (€)</label>
-          <input type="number" id="k-bankroll" value="1000" min="1" step="1">
+          <label>Net Payoff Ratio (b)</label>
+          <input type="number" id="k-payoff" value="2" min="0.001" step="0.01">
+          <div class="hint">If you win, how many units do you net per unit risked? (e.g. 2 = you triple your money)</div>
         </div>
-
         <div class="field">
           <label>Kelly Variant</label>
-          <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+          <div style="display:flex;gap:1rem;margin-top:0.5rem;flex-wrap:wrap;">
             <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.8rem;color:var(--text2)">
               <input type="radio" name="kelly-frac" value="1" checked style="accent-color:var(--accent)"> Full Kelly
             </label>
@@ -688,13 +390,64 @@
             </label>
           </div>
         </div>
-
-        <button class="btn-calc" onclick="calcKelly()">Calculate Stake</button>
+        <button class="btn-calc" onclick="calcKelly()">Calculate Optimal Allocation</button>
       </div>
+      <div class="card result-panel" id="kelly-result"><div class="result-empty">awaiting input</div></div>
+    </div>
+  </div>
 
-      <div class="card result-panel" id="kelly-result">
-        <div class="result-empty">awaiting input</div>
+  <!-- 06 SURVIVORSHIP BIAS -->
+  <div id="calc-surv" class="calculator">
+    <p class="calc-desc">
+      You only see survivors. The failures are invisible — they don't write books, give interviews, or post on social media.
+      Whenever someone shows you a success story as proof a strategy works, ask: what's the denominator?
+      How many people tried this and failed? If you can't find the denominator, assume the success rate is very low.
+      <br><br><span class="formula">True rate = visible successes ÷ (successes + invisible failures)</span>
+    </p>
+    <div class="calc-grid">
+      <div class="card">
+        <div class="card-title">Reconstruct the Denominator</div>
+        <div class="field">
+          <label>What's the success story or claim?</label>
+          <input type="text" id="sv-claim" placeholder="e.g. College dropout who built a billion-dollar company">
+        </div>
+        <div class="field">
+          <label>Number of visible successes you're aware of</label>
+          <input type="number" id="sv-successes" value="1" min="1" step="1">
+        </div>
+        <div class="field">
+          <label>Estimated total who attempted the same path</label>
+          <input type="number" id="sv-total" placeholder="e.g. 10000" min="1" step="1">
+          <div class="hint">Include the silent failures — they just didn't get the magazine cover</div>
+        </div>
+        <div class="field">
+          <label>Your intuitive probability after hearing the story (%)</label>
+          <input type="number" id="sv-intuitive" placeholder="e.g. 40" min="0" max="100" step="1">
+          <div class="hint">Optional — reveals how much the story inflated your estimate</div>
+        </div>
+        <div class="divider"></div>
+        <div class="card-title">Known Base Rates</div>
+        <div class="base-grid">
+          <div class="base-tile" onclick="loadSurvBase('startup')">
+            <div class="base-tile-label">Startup success</div>
+            <div class="base-tile-val">~6%</div>
+          </div>
+          <div class="base-tile" onclick="loadSurvBase('unicorn')">
+            <div class="base-tile-label">Unicorn outcome</div>
+            <div class="base-tile-val">~0.00006%</div>
+          </div>
+          <div class="base-tile" onclick="loadSurvBase('restaurant')">
+            <div class="base-tile-label">Restaurant (5yr)</div>
+            <div class="base-tile-val">~20%</div>
+          </div>
+          <div class="base-tile" onclick="loadSurvBase('fund')">
+            <div class="base-tile-label">Fund beats mkt 3yr</div>
+            <div class="base-tile-val">~15%</div>
+          </div>
+        </div>
+        <button class="btn-calc" onclick="calcSurv()">Analyse Bias</button>
       </div>
+      <div class="card result-panel" id="surv-result"><div class="result-empty">awaiting input</div></div>
     </div>
   </div>
 
@@ -703,461 +456,457 @@
 <script>
 // ── Utilities ──────────────────────────────────────────────────────────────
 
-function showTab(id) {
+function showTab(id, btn) {
   document.querySelectorAll('.calculator').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('calc-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  btn.classList.add('active');
 }
 
-function toDecimal(val, fmt) {
-  val = parseFloat(val);
-  if (isNaN(val)) return NaN;
-  if (fmt === 'decimal') return val;
-  if (fmt === 'american') {
-    if (val > 0) return 1 + val / 100;
-    else return 1 + 100 / Math.abs(val);
-  }
-  if (fmt === 'fractional') {
-    // expects "a/b" string — handle if passed as a number, treat as decimal
-    return val; // handled separately for fractional inputs
-  }
-  return val;
-}
-
-function parseFractional(str) {
-  if (typeof str === 'number') return NaN;
-  const parts = str.toString().split('/');
-  if (parts.length === 2) {
-    const n = parseFloat(parts[0]), d = parseFloat(parts[1]);
-    if (!isNaN(n) && !isNaN(d) && d !== 0) return 1 + n / d;
-  }
-  return NaN;
-}
-
-function oddsToDecimal(val, fmt) {
-  if (fmt === 'fractional') return parseFractional(val);
-  return toDecimal(val, fmt);
-}
-
-function pct(n, d = 2) { return (n * 100).toFixed(d) + '%'; }
-function cur(n) { return '€' + n.toFixed(2); }
 function sign(n) { return n >= 0 ? '+' : ''; }
-
-// ── 01 EV CALCULATOR ──────────────────────────────────────────────────────
-
-let evOutcomes = [];
-let evOddsPlaceholders = { decimal: '2.00', american: '+110', fractional: '1/1' };
-
-function updateEvFormat() {
-  const fmt = document.getElementById('ev-format').value;
-  evOutcomes.forEach((_, i) => {
-    const inp = document.getElementById('ev-odds-' + i);
-    if (inp) inp.placeholder = evOddsPlaceholders[fmt];
-    if (fmt === 'fractional') inp.type = 'text';
-    else inp.type = 'number';
-  });
+function fmtVal(v, unit) {
+  const n = Math.abs(v);
+  const s = n.toLocaleString('en-IE', {maximumFractionDigits: 2});
+  if (unit === '$') return (v < 0 ? '-$' : '$') + s;
+  if (unit === '€') return (v < 0 ? '-€' : '€') + s;
+  return v.toFixed(2) + ' ' + unit;
+}
+function showError(id, msg) {
+  document.getElementById(id).innerHTML = `<div class="error">⚠ ${msg}</div>`;
 }
 
-function addEvOutcome(oddsVal = '', probVal = '') {
-  const fmt = document.getElementById('ev-format').value;
-  const i = evOutcomes.length;
-  evOutcomes.push({ id: i });
-  const container = document.getElementById('ev-outcomes');
+// ── 01 Expected Value ──────────────────────────────────────────────────────
+
+let evRows = [], evCounter = 0;
+
+function addEvOutcome(label='', prob='', payoff='') {
+  const i = evCounter++;
+  evRows.push(i);
+  const c = document.getElementById('ev-outcomes');
   const row = document.createElement('div');
   row.className = 'outcome-row';
   row.id = 'ev-row-' + i;
+  row.style.gridTemplateColumns = '2fr 1.2fr 1.2fr 28px';
   row.innerHTML = `
-    <input type="${fmt === 'fractional' ? 'text' : 'number'}" id="ev-odds-${i}" placeholder="${evOddsPlaceholders[fmt]}" value="${oddsVal}" step="0.01">
-    <input type="number" id="ev-prob-${i}" placeholder="e.g. 52" min="0" max="100" step="0.1" value="${probVal}">
+    <input type="text" id="ev-label-${i}" placeholder="Outcome name" value="${label}">
+    <input type="number" id="ev-prob-${i}" placeholder="%" min="0" max="100" step="0.1" value="${prob}">
+    <input type="number" id="ev-payoff-${i}" placeholder="0" step="any" value="${payoff}">
     <button class="btn-remove" onclick="removeEvOutcome(${i})">×</button>`;
-  container.appendChild(row);
+  c.appendChild(row);
 }
 
 function removeEvOutcome(i) {
-  const row = document.getElementById('ev-row-' + i);
-  if (row) row.remove();
-  evOutcomes = evOutcomes.filter(o => o.id !== i);
+  document.getElementById('ev-row-' + i)?.remove();
+  evRows = evRows.filter(x => x !== i);
+}
+
+function loadEvExample(type) {
+  document.getElementById('ev-outcomes').innerHTML = '';
+  evRows = []; evCounter = 0;
+  if (type === 'job') {
+    document.getElementById('ev-context').value = 'Accept startup role vs stay in current job?';
+    document.getElementById('ev-unit').value = '€';
+    addEvOutcome('Stay — current salary', '100', '120000');
+    addEvOutcome('Startup — succeeds (equity + salary)', '60', '350000');
+    addEvOutcome('Startup — fails (base salary)', '40', '70000');
+  } else if (type === 'investment') {
+    document.getElementById('ev-context').value = 'Invest €10,000 in volatile asset?';
+    document.getElementById('ev-unit').value = '€';
+    addEvOutcome('Strong returns (+40%)', '25', '14000');
+    addEvOutcome('Modest returns (+8%)', '50', '10800');
+    addEvOutcome('Loss (−30%)', '25', '7000');
+  } else if (type === 'coin') {
+    document.getElementById('ev-context').value = 'Heads win $150, Tails lose $100';
+    document.getElementById('ev-unit').value = '$';
+    addEvOutcome('Heads — win', '50', '150');
+    addEvOutcome('Tails — lose', '50', '-100');
+  }
 }
 
 function calcEV() {
-  const fmt = document.getElementById('ev-format').value;
-  const stake = parseFloat(document.getElementById('ev-stake').value);
-  if (isNaN(stake) || stake <= 0) { showError('ev-result', 'Enter a valid stake.'); return; }
+  const unit = document.getElementById('ev-unit').value;
+  const rows = evRows.map(i => ({
+    label: document.getElementById('ev-label-' + i)?.value || 'Outcome',
+    prob: parseFloat(document.getElementById('ev-prob-' + i)?.value) / 100,
+    payoff: parseFloat(document.getElementById('ev-payoff-' + i)?.value)
+  })).filter(r => !isNaN(r.prob) && !isNaN(r.payoff));
 
-  const rows = document.querySelectorAll('#ev-outcomes .outcome-row');
-  if (rows.length === 0) { showError('ev-result', 'Add at least one outcome.'); return; }
+  if (rows.length === 0) { showError('ev-result', 'Add at least one outcome with probability and payoff.'); return; }
 
-  let totalProb = 0, ev = 0, valid = true;
-  const outcomes = [];
+  const totalProb = rows.reduce((s, r) => s + r.prob, 0);
+  const ev = rows.reduce((s, r) => s + r.prob * r.payoff, 0);
+  const evClass = ev >= 0 ? 'positive' : 'negative';
 
-  rows.forEach(row => {
-    const id = row.id.split('-')[2];
-    const oddsRaw = document.getElementById('ev-odds-' + id).value;
-    const prob = parseFloat(document.getElementById('ev-prob-' + id).value) / 100;
-    const dec = oddsToDecimal(oddsRaw, fmt);
+  const probWarn = Math.abs(totalProb - 1) > 0.01
+    ? `<div class="verdict warning">⚠ Probabilities sum to ${(totalProb*100).toFixed(1)}% — they should sum to 100%.</div>` : '';
 
-    if (isNaN(dec) || dec < 1 || isNaN(prob) || prob < 0 || prob > 1) { valid = false; return; }
+  const rowsHtml = rows.map(r => {
+    const c = r.prob * r.payoff;
+    return `<div class="result-item">
+      <span class="result-label">${r.label} (${(r.prob*100).toFixed(1)}%)</span>
+      <span class="result-value ${c >= 0 ? 'positive' : 'negative'}">${sign(c)}${fmtVal(c, unit)}</span>
+    </div>`;
+  }).join('');
 
-    const profit = (dec - 1) * stake;
-    const loss = -stake;
-    const rowEV = prob * profit + (1 - prob) * loss;
-    totalProb += prob;
-    ev += prob * profit;
-    ev -= (1 - prob) * stake * (1 / rows.length); // simplified: distribute loss
-    outcomes.push({ dec, prob, profit, rowEV });
-  });
-
-  if (!valid) { showError('ev-result', 'Check all odds and probabilities are valid.'); return; }
-
-  // recalculate EV properly
-  ev = 0;
-  const n = outcomes.length;
-  // Each outcome: win = profit, lose = -stake, prob of this outcome = p_i
-  // Total prob must sum to ≤ 100%. If multiple bets, treat as independent
-  // Simple single-bet model: for each row independently
-  let htmlRows = '';
-  let totalEV = 0;
-  outcomes.forEach((o, idx) => {
-    const rowEV = o.prob * (o.dec - 1) * stake + (1 - o.prob) * (-stake);
-    totalEV += rowEV;
-    const cls = rowEV >= 0 ? 'positive' : 'negative';
-    htmlRows += `
-      <div class="result-item">
-        <span class="result-label">Outcome ${idx + 1} EV (${(o.prob * 100).toFixed(1)}% @ ${o.dec.toFixed(3)})</span>
-        <span class="result-value ${cls}">${sign(rowEV)}${cur(rowEV)}</span>
-      </div>`;
-  });
-
-  const probTotal = outcomes.reduce((s, o) => s + o.prob, 0);
-  const probWarn = Math.abs(probTotal - 1) > 0.001
-    ? `<div class="hint" style="color:var(--accent3)">⚠ Probabilities sum to ${(probTotal * 100).toFixed(1)}%</div>` : '';
-
-  const evClass = totalEV >= 0 ? 'positive' : 'negative';
-  const verdict = totalEV >= 0
-    ? `✓ Positive EV bet. Expected profit of ${cur(totalEV)} per ${cur(stake)} wagered.`
-    : `✗ Negative EV bet. Expected loss of ${cur(Math.abs(totalEV))} per ${cur(stake)} wagered.`;
+  const context = document.getElementById('ev-context').value;
+  const verdict = ev >= 0
+    ? `✓ Positive expected value. On average, this decision yields ${fmtVal(ev, unit)} per iteration.`
+    : `✗ Negative expected value. On average, this decision costs ${fmtVal(Math.abs(ev), unit)}. Reconsider unless you have strong non-quantifiable reasons.`;
 
   document.getElementById('ev-result').innerHTML = `
-    <div class="card-title">Result</div>
+    <div class="card-title">${context ? 'Result: ' + context : 'Result'}</div>
     <div class="result-big">
-      <div class="result-big-label">Total Expected Value</div>
-      <div class="result-big-value ${evClass}">${sign(totalEV)}${cur(totalEV)}</div>
+      <div class="result-big-label">Expected Value</div>
+      <div class="result-big-value ${evClass}">${sign(ev)}${fmtVal(ev, unit)}</div>
     </div>
-    ${htmlRows}
+    ${rowsHtml}
     <div class="result-item">
-      <span class="result-label">EV as % of stake</span>
-      <span class="result-value ${evClass}">${sign(totalEV / stake * 100)}${(totalEV / stake * 100).toFixed(2)}%</span>
+      <span class="result-label">Probability sum</span>
+      <span class="result-value ${Math.abs(totalProb-1)<0.01?'neutral':'warning'}">${(totalProb*100).toFixed(1)}%</span>
     </div>
     ${probWarn}
-    <div class="verdict ${totalEV >= 0 ? 'positive' : 'negative'}">${verdict}</div>`;
+    <div class="verdict ${ev >= 0 ? 'positive' : 'negative'}">${verdict}</div>`;
 }
 
-// ── 02 BASE RATES ──────────────────────────────────────────────────────────
+// ── 02 Base Rates ──────────────────────────────────────────────────────────
 
-let brSides = [];
-let brPlaceholders = { decimal: '1.90', american: '-110', fractional: '9/10' };
-let brCounters = 0;
-
-function updateBrFormat() {
-  const fmt = document.getElementById('br-format').value;
-  brSides.forEach(id => {
-    const inp = document.getElementById('br-odds-' + id);
-    if (inp) {
-      inp.placeholder = brPlaceholders[fmt];
-      inp.type = fmt === 'fractional' ? 'text' : 'number';
-    }
-  });
-}
-
-function addBrSide(oddsVal = '') {
-  const fmt = document.getElementById('br-format').value;
-  const i = brCounters++;
-  brSides.push(i);
-  const container = document.getElementById('br-sides');
-  const row = document.createElement('div');
-  row.className = 'outcome-row';
-  row.id = 'br-row-' + i;
-  const names = ['Side A', 'Side B', 'Side C', 'Draw', 'Side D'];
-  row.innerHTML = `
-    <input type="text" placeholder="${names[brSides.length - 1] || 'Side'}" id="br-name-${i}" style="background:var(--bg);border:1px solid var(--border2);border-radius:2px;padding:0.6rem 0.75rem;color:var(--text);font-family:var(--mono);font-size:0.85rem;outline:none;" value="">
-    <input type="${fmt === 'fractional' ? 'text' : 'number'}" id="br-odds-${i}" placeholder="${brPlaceholders[fmt]}" value="${oddsVal}" step="0.01">
-    <button class="btn-remove" onclick="removeBrSide(${i})">×</button>`;
-  container.appendChild(row);
-}
-
-function removeBrSide(i) {
-  const row = document.getElementById('br-row-' + i);
-  if (row) row.remove();
-  brSides = brSides.filter(s => s !== i);
+function loadBaseExample(type) {
+  const presets = {
+    medical:  { br: '0.1',  tpr: '99', fpr: '1',  gut: '99' },
+    startup:  { br: '6',    tpr: '85', fpr: '40', gut: '60' },
+    fund:     { br: '15',   tpr: '100',fpr: '0',  gut: '80' }
+  };
+  const p = presets[type];
+  document.getElementById('br-baserate').value = p.br;
+  document.getElementById('br-tpr').value = p.tpr;
+  document.getElementById('br-fpr').value = p.fpr;
+  document.getElementById('br-intuition').value = p.gut;
 }
 
 function calcBaseRates() {
-  const fmt = document.getElementById('br-format').value;
-  if (brSides.length < 2) { showError('br-result', 'Add at least 2 sides.'); return; }
+  const baseRate = parseFloat(document.getElementById('br-baserate').value) / 100;
+  const tpr = parseFloat(document.getElementById('br-tpr').value) / 100;
+  const fpr = parseFloat(document.getElementById('br-fpr').value) / 100;
+  const intuition = parseFloat(document.getElementById('br-intuition').value) / 100;
 
-  const trueProb = parseFloat(document.getElementById('br-true-prob').value) / 100;
+  if ([baseRate, tpr, fpr].some(isNaN)) { showError('br-result', 'Fill in base rate, true positive rate, and false positive rate.'); return; }
+  if (baseRate <= 0 || baseRate > 1) { showError('br-result', 'Base rate must be between 0% and 100%.'); return; }
 
-  const sides = [];
-  let valid = true;
-  brSides.forEach(id => {
-    const name = document.getElementById('br-name-' + id)?.value || 'Side';
-    const oddsRaw = document.getElementById('br-odds-' + id).value;
-    const dec = oddsToDecimal(oddsRaw, fmt);
-    if (isNaN(dec) || dec < 1) { valid = false; return; }
-    sides.push({ name, dec, imp: 1 / dec });
-  });
+  const complement = 1 - baseRate;
+  const pPos = tpr * baseRate + fpr * complement;
+  const posterior = (tpr * baseRate) / pPos;
 
-  if (!valid) { showError('br-result', 'Check all odds are valid.'); return; }
+  const pop = 10000;
+  const truePos = Math.round(tpr * baseRate * pop);
+  const falsePos = Math.round(fpr * complement * pop);
+  const total = truePos + falsePos;
 
-  const sumImp = sides.reduce((s, x) => s + x.imp, 0);
-  const margin = sumImp - 1;
-  const fairImps = sides.map(s => ({ ...s, fair: s.imp / sumImp }));
+  const bias = !isNaN(intuition) && !isNaN(intuition) ? intuition - posterior : null;
+  const overEst = bias !== null && bias > 0.02;
+  const underEst = bias !== null && bias < -0.02;
 
-  let html = `<div class="card-title">Result</div>`;
-
-  html += `<div class="result-item">
-    <span class="result-label">Book Margin (Vig)</span>
-    <span class="result-value" style="color:var(--accent3)">${(margin * 100).toFixed(3)}%</span>
-  </div>`;
-
-  fairImps.forEach(s => {
-    html += `<div class="result-item">
-      <span class="result-label">${s.name} — Implied / Fair</span>
-      <span class="result-value neutral">${(s.imp * 100).toFixed(2)}% / <span style="color:var(--text)">${(s.fair * 100).toFixed(2)}%</span></span>
-    </div>`;
-  });
-
-  if (!isNaN(trueProb) && trueProb > 0) {
-    const firstFair = fairImps[0].fair;
-    const edge = trueProb - firstFair;
-    const edgeClass = edge > 0 ? 'positive' : 'negative';
-    const breakEvenOdds = 1 / trueProb;
-    html += `
-      <div class="divider"></div>
-      <div class="result-item">
-        <span class="result-label">Your True Prob (Side A)</span>
-        <span class="result-value">${(trueProb * 100).toFixed(2)}%</span>
-      </div>
-      <div class="result-item">
-        <span class="result-label">Fair Implied (Side A)</span>
-        <span class="result-value neutral">${(firstFair * 100).toFixed(2)}%</span>
-      </div>
-      <div class="result-item">
-        <span class="result-label">Your Edge</span>
-        <span class="result-value ${edgeClass}">${sign(edge * 100)}${(edge * 100).toFixed(2)}pp</span>
-      </div>
-      <div class="result-item">
-        <span class="result-label">Break-even Odds (Decimal)</span>
-        <span class="result-value">${breakEvenOdds.toFixed(3)}</span>
-      </div>
-      <div class="verdict ${edge > 0 ? 'positive' : 'negative'}">
-        ${edge > 0 ? `✓ You have +${(edge * 100).toFixed(2)}pp edge over the fair probability.` : `✗ No edge. Fair prob exceeds your estimate by ${(Math.abs(edge) * 100).toFixed(2)}pp.`}
-      </div>`;
-  }
-
-  document.getElementById('br-result').innerHTML = html;
+  document.getElementById('br-result').innerHTML = `
+    <div class="card-title">Result</div>
+    <div class="result-big">
+      <div class="result-big-label">True Probability After Positive Signal</div>
+      <div class="result-big-value ${posterior > 0.5 ? 'positive' : 'negative'}">${(posterior * 100).toFixed(2)}%</div>
+    </div>
+    <div class="result-item"><span class="result-label">Base rate (prior)</span><span class="result-value">${(baseRate*100).toFixed(3)}%</span></div>
+    <div class="result-item"><span class="result-label">True positives (per ${pop.toLocaleString()})</span><span class="result-value positive">${truePos.toLocaleString()}</span></div>
+    <div class="result-item"><span class="result-label">False positives (per ${pop.toLocaleString()})</span><span class="result-value negative">${falsePos.toLocaleString()}</span></div>
+    <div class="result-item"><span class="result-label">Total positive signals</span><span class="result-value neutral">${total.toLocaleString()}</span></div>
+    <div class="result-item"><span class="result-label">Positive predictive value</span><span class="result-value highlight">${(posterior*100).toFixed(2)}%</span></div>
+    ${bias !== null ? `
+    <div class="result-item"><span class="result-label">Your gut estimate</span><span class="result-value">${(intuition*100).toFixed(1)}%</span></div>
+    <div class="result-item"><span class="result-label">Estimation error</span><span class="result-value ${overEst?'negative':underEst?'neutral':'positive'}">${sign(bias*100)}${(bias*100).toFixed(1)}pp</span></div>
+    <div class="verdict ${overEst?'negative':underEst?'neutral':'positive'}">
+      ${overEst
+        ? `✗ You overestimated by ${(bias*100).toFixed(1)}pp. Base rate neglect at work — the low prior (${(baseRate*100).toFixed(2)}%) pulls the true probability down dramatically, even with an accurate signal.`
+        : underEst
+          ? `You underestimated. The signal is stronger than your gut suggested.`
+          : `✓ Your intuition is well-calibrated here.`}
+    </div>` : ''}`;
 }
 
-// ── 03 BAYESIAN ───────────────────────────────────────────────────────────
+// ── 03 Bayesian Update ─────────────────────────────────────────────────────
+
+function loadBayesExample(type) {
+  const ex = {
+    quit:    { h: 'My coworker is about to quit', e: 'She updated her LinkedIn profile', prior: 10, lt: 70, lf: 15 },
+    lie:     { h: 'This candidate lied on their CV', e: 'Their story has inconsistencies', prior: 15, lt: 80, lf: 10 },
+    success: { h: 'This project will succeed', e: 'Early user feedback is very positive', prior: 30, lt: 75, lf: 25 }
+  };
+  const p = ex[type];
+  document.getElementById('b-hypothesis').value = p.h;
+  document.getElementById('b-evidence').value = p.e;
+  document.getElementById('b-prior').value = p.prior;
+  document.getElementById('b-lh-true').value = p.lt;
+  document.getElementById('b-lh-false').value = p.lf;
+}
 
 function calcBayes() {
   const prior = parseFloat(document.getElementById('b-prior').value) / 100;
   const lhTrue = parseFloat(document.getElementById('b-lh-true').value) / 100;
   const lhFalse = parseFloat(document.getElementById('b-lh-false').value) / 100;
-
-  if ([prior, lhTrue, lhFalse].some(isNaN)) { showError('bayes-result', 'Fill in all fields.'); return; }
+  if ([prior, lhTrue, lhFalse].some(isNaN)) { showError('bayes-result', 'Fill in all three probability fields.'); return; }
   if (prior <= 0 || prior >= 1) { showError('bayes-result', 'Prior must be between 0% and 100%.'); return; }
 
-  const priorComplement = 1 - prior;
-  const pEvidence = lhTrue * prior + lhFalse * priorComplement;
-  const posterior = (lhTrue * prior) / pEvidence;
-  const posteriorFalse = 1 - posterior;
-
+  const q = 1 - prior;
+  const pE = lhTrue * prior + lhFalse * q;
+  const posterior = (lhTrue * prior) / pE;
   const update = posterior - prior;
-  const updateClass = update >= 0 ? 'positive' : 'negative';
-  const bayes_factor = lhTrue / lhFalse;
-  const odds_prior = prior / priorComplement;
-  const odds_posterior = posterior / posteriorFalse;
+  const bf = lhTrue / lhFalse;
+  const oddsP = prior / q;
+  const oddsPost = posterior / (1 - posterior);
+
+  const bfStrength = bf > 10 ? 'Strong' : bf > 3 ? 'Moderate' : bf > 1 ? 'Weak' : 'Against hypothesis';
+  const bfClass = bf > 3 ? 'positive' : bf > 1 ? 'neutral' : 'negative';
+  const hyp = document.getElementById('b-hypothesis').value;
+  const ev = document.getElementById('b-evidence').value;
 
   document.getElementById('bayes-result').innerHTML = `
-    <div class="card-title">Result</div>
+    <div class="card-title">${hyp ? 'Result: ' + hyp : 'Result'}</div>
     <div class="result-big">
-      <div class="result-big-label">Posterior Probability P(H|E)</div>
-      <div class="result-big-value ${posterior > 0.5 ? 'positive' : 'negative'}">${(posterior * 100).toFixed(2)}%</div>
+      <div class="result-big-label">Updated Belief P(H|E)</div>
+      <div class="result-big-value highlight">${(posterior * 100).toFixed(2)}%</div>
     </div>
-    <div class="result-item">
-      <span class="result-label">Prior P(H)</span>
-      <span class="result-value">${(prior * 100).toFixed(2)}%</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Posterior P(H|E)</span>
-      <span class="result-value highlight">${(posterior * 100).toFixed(2)}%</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Belief Update</span>
-      <span class="result-value ${updateClass}">${sign(update * 100)}${(update * 100).toFixed(2)}pp</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Bayes Factor (LR)</span>
-      <span class="result-value neutral">${bayes_factor.toFixed(3)}×</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Prior Odds</span>
-      <span class="result-value">${odds_prior.toFixed(3)}</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Posterior Odds</span>
-      <span class="result-value highlight">${odds_posterior.toFixed(3)}</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">P(E) — Marginal Evidence</span>
-      <span class="result-value">${(pEvidence * 100).toFixed(3)}%</span>
-    </div>
+    <div class="result-item"><span class="result-label">Prior P(H)</span><span class="result-value">${(prior*100).toFixed(2)}%</span></div>
+    <div class="result-item"><span class="result-label">Posterior P(H|E)</span><span class="result-value highlight">${(posterior*100).toFixed(2)}%</span></div>
+    <div class="result-item"><span class="result-label">Belief update</span><span class="result-value ${update>=0?'positive':'negative'}">${sign(update*100)}${(update*100).toFixed(2)}pp</span></div>
+    <div class="result-item"><span class="result-label">Bayes factor (likelihood ratio)</span><span class="result-value ${bfClass}">${bf.toFixed(3)}×</span></div>
+    <div class="result-item"><span class="result-label">Evidence strength</span><span class="result-value ${bfClass}">${bfStrength}</span></div>
+    <div class="result-item"><span class="result-label">Prior odds</span><span class="result-value">${oddsP.toFixed(3)}</span></div>
+    <div class="result-item"><span class="result-label">Posterior odds</span><span class="result-value highlight">${oddsPost.toFixed(3)}</span></div>
     <div class="verdict ${update >= 0 ? 'positive' : 'negative'}">
-      ${bayesVerdict(prior, posterior, bayes_factor)}
+      ${ev ? `Evidence: "${ev}". ` : ''}${bfStrength} ${update >= 0 ? 'supporting' : 'opposing'} evidence ${update >= 0 ? 'increases' : 'decreases'} belief from ${(prior*100).toFixed(1)}% → ${(posterior*100).toFixed(1)}%. Don't flip your opinion — update it proportionally.
     </div>`;
 }
 
-function bayesVerdict(prior, posterior, bf) {
-  const dir = posterior > prior ? 'increases' : 'decreases';
-  let strength = '';
-  if (bf < 1/10 || bf > 10) strength = 'Strong';
-  else if (bf < 1/3 || bf > 3) strength = 'Moderate';
-  else strength = 'Weak';
-  return `${strength} evidence ${dir} belief from ${(prior*100).toFixed(1)}% → ${(posterior*100).toFixed(1)}%. Bayes factor of ${bf.toFixed(2)}× indicates ${bf > 1 ? 'supporting' : 'opposing'} evidence.`;
+// ── 04 Sunk Cost ───────────────────────────────────────────────────────────
+
+const scChecks = [
+  "Am I staying for future value — not to 'recover' past investment?",
+  "Would I choose this path today if I had zero prior history with it?",
+  "Have I honestly separated 'I've invested a lot' from 'this is the best next step'?",
+  "Have I written down the best realistic alternative and compared it fairly?",
+  "Am I staying partly because of ego — fear of admitting I was wrong?",
+  "Is my case for continuing based on forward-looking evidence?"
+];
+
+function initSunkCost() {
+  const container = document.getElementById('sc-checklist');
+  if (!container || container.children.length > 0) return;
+  scChecks.forEach((text, i) => {
+    const item = document.createElement('div');
+    item.className = 'checklist-item';
+    item.id = 'sc-check-' + i;
+    item.innerHTML = `<input type="checkbox" id="scbox-${i}" onchange="toggleCheck(${i})"><label class="checklist-item-text" for="scbox-${i}">${text}</label>`;
+    container.appendChild(item);
+  });
 }
 
-// ── 04 KELLY CRITERION ────────────────────────────────────────────────────
+function toggleCheck(i) {
+  document.getElementById('sc-check-' + i).classList.toggle('checked', document.getElementById('scbox-' + i).checked);
+}
 
-let kellyPlaceholders = { decimal: '2.00', american: '+100', fractional: '1/1' };
-let kellyLabels = { decimal: 'Decimal Odds', american: 'American Odds', fractional: 'Fractional Odds (e.g. 5/2)' };
+function calcSunkCost() {
+  const situation = document.getElementById('sc-situation').value;
+  const fresh = parseFloat(document.getElementById('sc-fresh').value) / 100;
+  const stayEV = parseFloat(document.getElementById('sc-stay-ev').value);
+  const altEV = parseFloat(document.getElementById('sc-alt-ev').value);
+  const unit = document.getElementById('sc-unit').value;
+  const checkScore = scChecks.reduce((s, _, i) => s + (document.getElementById('scbox-'+i)?.checked ? 1 : 0), 0);
+  const checkPct = checkScore / scChecks.length;
 
-function updateKellyFormat() {
-  const fmt = document.getElementById('k-format').value;
-  const inp = document.getElementById('k-odds');
-  inp.placeholder = kellyPlaceholders[fmt];
-  inp.type = fmt === 'fractional' ? 'text' : 'number';
-  document.getElementById('k-odds-label').textContent = kellyLabels[fmt];
+  const barColor = checkPct >= 0.7 ? 'var(--positive)' : checkPct >= 0.4 ? 'var(--accent3)' : 'var(--negative)';
+
+  let html = `<div class="card-title">${situation ? 'Result: ' + situation : 'Result'}</div>`;
+  html += `<div class="result-item" style="flex-direction:column;align-items:flex-start;gap:0.4rem">
+    <span class="result-label">Clear-thinking score — ${checkScore}/${scChecks.length} confirmed</span>
+    <div class="sc-score-bar" style="width:100%"><div class="sc-score-fill" style="width:${(checkPct*100).toFixed(0)}%;background:${barColor}"></div></div>
+  </div>`;
+
+  if (!isNaN(fresh)) {
+    html += `<div class="result-item"><span class="result-label">Fresh-start probability</span><span class="result-value ${fresh>0.5?'positive':fresh>0.25?'warning':'negative'}">${(fresh*100).toFixed(0)}%</span></div>`;
+  }
+
+  let oppCostHtml = '';
+  if (!isNaN(stayEV) && !isNaN(altEV)) {
+    const diff = altEV - stayEV;
+    oppCostHtml = `
+      <div class="result-item"><span class="result-label">Stay (forward EV)</span><span class="result-value">${fmtVal(stayEV, unit)}</span></div>
+      <div class="result-item"><span class="result-label">Alternative (forward EV)</span><span class="result-value ${altEV>stayEV?'positive':'negative'}">${fmtVal(altEV, unit)}</span></div>
+      <div class="result-item"><span class="result-label">Opportunity cost of staying</span><span class="result-value ${diff>0?'negative':'positive'}">${diff>0?'-':''}${fmtVal(Math.abs(diff), unit)}</span></div>`;
+  }
+  html += oppCostHtml;
+
+  const altBetter = !isNaN(stayEV) && !isNaN(altEV) && altEV > stayEV;
+  const freshLow = !isNaN(fresh) && fresh < 0.35;
+
+  let verdictText, vClass;
+  if (altBetter && freshLow) {
+    verdictText = `Strong signal to move on. Both the forward-looking math and your fresh-start instinct point the same way. The past investment is not a reason to stay — it's gone either way.`;
+    vClass = 'negative';
+  } else if (altBetter) {
+    verdictText = `The forward numbers favour switching. Make sure you're not staying because of what you've already invested — that cost is sunk and identical under both paths.`;
+    vClass = 'warning';
+  } else if (freshLow) {
+    verdictText = `A ${(fresh*100).toFixed(0)}% fresh-start probability is a red flag. You're unlikely to be continuing for genuinely forward-looking reasons.`;
+    vClass = 'negative';
+  } else if (checkPct >= 0.7) {
+    verdictText = `Your reasoning looks relatively free of sunk cost bias. If you're staying, it appears to be for forward-looking reasons — which is the right basis.`;
+    vClass = 'positive';
+  } else {
+    verdictText = `Work through the checklist honestly. The real test: if the past investment were zero, would you still choose this path today?`;
+    vClass = 'neutral';
+  }
+
+  html += `<div class="verdict ${vClass}">${verdictText}</div>`;
+  document.getElementById('sc-result').innerHTML = html;
+}
+
+// ── 05 Kelly Criterion ─────────────────────────────────────────────────────
+
+function loadKellyExample(type) {
+  const ex = {
+    invest:  { res: 'money',  br: 50000, prob: 60, b: 2,   frac: '0.5' },
+    career:  { res: 'career', br: 100,   prob: 55, b: 3,   frac: '0.25' },
+    project: { res: 'time',   br: 40,    prob: 40, b: 4,   frac: '0.25' }
+  };
+  const p = ex[type];
+  document.getElementById('k-resource').value = p.res;
+  document.getElementById('k-bankroll').value = p.br;
+  document.getElementById('k-prob').value = p.prob;
+  document.getElementById('k-payoff').value = p.b;
+  document.querySelector(`input[name="kelly-frac"][value="${p.frac}"]`).checked = true;
 }
 
 function calcKelly() {
-  const fmt = document.getElementById('k-format').value;
-  const oddsRaw = document.getElementById('k-odds').value;
-  const prob = parseFloat(document.getElementById('k-prob').value) / 100;
+  const resource = document.getElementById('k-resource').value;
   const bankroll = parseFloat(document.getElementById('k-bankroll').value);
+  const prob = parseFloat(document.getElementById('k-prob').value) / 100;
+  const b = parseFloat(document.getElementById('k-payoff').value);
   const frac = parseFloat(document.querySelector('input[name="kelly-frac"]:checked').value);
 
-  const dec = oddsToDecimal(oddsRaw, fmt);
-
-  if (isNaN(dec) || dec < 1) { showError('kelly-result', 'Enter valid odds.'); return; }
+  if (isNaN(bankroll) || bankroll <= 0) { showError('kelly-result', 'Enter a valid resource amount.'); return; }
   if (isNaN(prob) || prob <= 0 || prob >= 1) { showError('kelly-result', 'Probability must be between 0% and 100%.'); return; }
-  if (isNaN(bankroll) || bankroll <= 0) { showError('kelly-result', 'Enter a valid bankroll.'); return; }
+  if (isNaN(b) || b <= 0) { showError('kelly-result', 'Payoff ratio must be greater than 0.'); return; }
 
-  const b = dec - 1; // net odds
   const q = 1 - prob;
   const kellyFull = (b * prob - q) / b;
-  const kellyAdjusted = kellyFull * frac;
-  const impliedProb = 1 / dec;
-  const edge = prob - impliedProb;
-  const ev = prob * b - q; // per unit
+  const breakEven = 1 / (1 + b);
+  const edge = prob - breakEven;
 
-  const stakeAdjusted = Math.max(0, kellyAdjusted) * bankroll;
-  const stakeFull = Math.max(0, kellyFull) * bankroll;
-
-  const variantName = frac === 1 ? 'Full Kelly' : frac === 0.5 ? 'Half Kelly' : 'Quarter Kelly';
+  const rlabels = { money: 'resource', time: 'hours/week', career: '% of focus', custom: 'resource' };
 
   if (kellyFull <= 0) {
     document.getElementById('kelly-result').innerHTML = `
-      <div class="card-title">Result</div>
-      <div class="verdict negative">
-        ✗ No edge detected. Kelly recommends no bet (or laying).<br><br>
-        Your win prob (${(prob * 100).toFixed(1)}%) is at or below the implied prob (${(impliedProb * 100).toFixed(2)}%).
+      <div class="card-title">Result — No Edge</div>
+      <div class="result-big">
+        <div class="result-big-label">Recommended Allocation</div>
+        <div class="result-big-value negative">0</div>
       </div>
-      <div class="result-item">
-        <span class="result-label">Your Probability</span>
-        <span class="result-value">${(prob * 100).toFixed(2)}%</span>
-      </div>
-      <div class="result-item">
-        <span class="result-label">Implied Probability</span>
-        <span class="result-value neutral">${(impliedProb * 100).toFixed(2)}%</span>
-      </div>
-      <div class="result-item">
-        <span class="result-label">Edge</span>
-        <span class="result-value negative">${(edge * 100).toFixed(2)}pp</span>
-      </div>`;
+      <div class="result-item"><span class="result-label">Your probability</span><span class="result-value negative">${(prob*100).toFixed(2)}%</span></div>
+      <div class="result-item"><span class="result-label">Break-even probability</span><span class="result-value neutral">${(breakEven*100).toFixed(2)}%</span></div>
+      <div class="verdict negative">✗ No edge detected. Kelly recommends zero allocation. Your probability (${(prob*100).toFixed(1)}%) is at or below break-even (${(breakEven*100).toFixed(2)}%) for this payoff.</div>`;
     return;
   }
 
-  const edgeClass = edge > 0 ? 'positive' : 'negative';
+  const variantName = frac === 1 ? 'Full Kelly' : frac === 0.5 ? 'Half Kelly' : 'Quarter Kelly';
+  const kellyAdj = kellyFull * frac;
+  const stakeAdj = kellyAdj * bankroll;
+  const stakeFull = kellyFull * bankroll;
+  const ev = prob * b - q;
 
   document.getElementById('kelly-result').innerHTML = `
     <div class="card-title">Result — ${variantName}</div>
     <div class="result-big">
-      <div class="result-big-label">${variantName} Stake</div>
-      <div class="result-big-value positive">${cur(stakeAdjusted)}</div>
+      <div class="result-big-label">Optimal Allocation (${variantName})</div>
+      <div class="result-big-value positive">${stakeAdj.toFixed(resource==='money'?2:1)}</div>
     </div>
-    <div class="result-item">
-      <span class="result-label">Full Kelly %</span>
-      <span class="result-value">${(kellyFull * 100).toFixed(2)}%</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">${variantName} % (×${frac})</span>
-      <span class="result-value highlight">${(kellyAdjusted * 100).toFixed(2)}%</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Stake (${variantName})</span>
-      <span class="result-value positive">${cur(stakeAdjusted)}</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Stake (Full Kelly)</span>
-      <span class="result-value">${cur(stakeFull)}</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Edge</span>
-      <span class="result-value ${edgeClass}">${sign(edge * 100)}${(edge * 100).toFixed(2)}pp</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Expected Value per unit</span>
-      <span class="result-value ${ev >= 0 ? 'positive' : 'negative'}">${sign(ev * 100)}${(ev * 100).toFixed(3)}%</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Implied Probability</span>
-      <span class="result-value neutral">${(impliedProb * 100).toFixed(2)}%</span>
-    </div>
-    <div class="result-item">
-      <span class="result-label">Your Probability</span>
-      <span class="result-value">${(prob * 100).toFixed(2)}%</span>
-    </div>
-    <div class="kelly-options">
-      <div class="kelly-option ${frac === 1 ? 'selected' : ''}">
-        <span class="kelly-option-label">Full</span>
-        <span class="kelly-option-val">${cur(stakeFull)}</span>
+    <div class="result-item"><span class="result-label">Full Kelly %</span><span class="result-value">${(kellyFull*100).toFixed(2)}%</span></div>
+    <div class="result-item"><span class="result-label">${variantName} % (×${frac})</span><span class="result-value highlight">${(kellyAdj*100).toFixed(2)}%</span></div>
+    <div class="result-item"><span class="result-label">Edge over break-even</span><span class="result-value positive">+${(edge*100).toFixed(2)}pp</span></div>
+    <div class="result-item"><span class="result-label">Expected value per unit</span><span class="result-value ${ev>=0?'positive':'negative'}">${sign(ev*100)}${(ev*100).toFixed(3)}%</span></div>
+    <div class="result-item"><span class="result-label">Break-even probability</span><span class="result-value neutral">${(breakEven*100).toFixed(2)}%</span></div>
+    <div class="kelly-compare">
+      <div class="kelly-box ${frac===1?'selected':''}">
+        <div class="kelly-box-label">Full</div>
+        <div class="kelly-box-val">${stakeFull.toFixed(1)}</div>
+        <div class="kelly-box-pct">${(kellyFull*100).toFixed(1)}%</div>
       </div>
-      <div class="kelly-option ${frac === 0.5 ? 'selected' : ''}">
-        <span class="kelly-option-label">Half</span>
-        <span class="kelly-option-val">${cur(stakeFull * 0.5)}</span>
+      <div class="kelly-box ${frac===0.5?'selected':''}">
+        <div class="kelly-box-label">Half</div>
+        <div class="kelly-box-val">${(stakeFull*0.5).toFixed(1)}</div>
+        <div class="kelly-box-pct">${(kellyFull*50).toFixed(1)}%</div>
       </div>
-      <div class="kelly-option ${frac === 0.25 ? 'selected' : ''}">
-        <span class="kelly-option-label">Quarter</span>
-        <span class="kelly-option-val">${cur(stakeFull * 0.25)}</span>
+      <div class="kelly-box ${frac===0.25?'selected':''}">
+        <div class="kelly-box-label">Quarter</div>
+        <div class="kelly-box-val">${(stakeFull*0.25).toFixed(1)}</div>
+        <div class="kelly-box-pct">${(kellyFull*25).toFixed(1)}%</div>
       </div>
+    </div>
+    <div class="verdict positive">
+      Genuine edge. ${variantName} recommends allocating ${(kellyAdj*100).toFixed(1)}% of your ${rlabels[resource]}.
+      Full Kelly maximises long-run growth but is emotionally brutal — most practitioners prefer Half or Quarter Kelly.
     </div>`;
 }
 
-// ── Shared helpers ────────────────────────────────────────────────────────
+// ── 06 Survivorship Bias ───────────────────────────────────────────────────
 
-function showError(panelId, msg) {
-  document.getElementById(panelId).innerHTML = `<div class="error">⚠ ${msg}</div>`;
+function loadSurvBase(type) {
+  const p = { startup: [6,100], unicorn: [1,1666667], restaurant: [20,100], fund: [15,100] }[type];
+  if (!p) return;
+  document.getElementById('sv-successes').value = p[0];
+  document.getElementById('sv-total').value = p[1];
 }
 
-// ── Initialise ────────────────────────────────────────────────────────────
+function calcSurv() {
+  const claim = document.getElementById('sv-claim').value;
+  const successes = parseFloat(document.getElementById('sv-successes').value);
+  const total = parseFloat(document.getElementById('sv-total').value);
+  const intuitive = parseFloat(document.getElementById('sv-intuitive').value) / 100;
 
-addEvOutcome('2.10', '52');
-addEvOutcome('', '');
+  if (isNaN(successes) || isNaN(total) || total <= 0) { showError('surv-result', 'Enter valid success and total counts.'); return; }
+  if (successes > total) { showError('surv-result', 'Successes cannot exceed total.'); return; }
 
-addBrSide('1.90');
-addBrSide('1.90');
+  const trueRate = successes / total;
+  const failures = total - successes;
+  const ratio = failures / Math.max(successes, 1);
+  const bias = !isNaN(intuitive) ? intuitive - trueRate : null;
+  const overEst = bias !== null && bias > 0.02;
+
+  document.getElementById('surv-result').innerHTML = `
+    <div class="card-title">${claim ? 'Result: ' + claim : 'Result'}</div>
+    <div class="result-big">
+      <div class="result-big-label">True Success Rate</div>
+      <div class="result-big-value ${trueRate > 0.3 ? 'positive' : trueRate > 0.05 ? 'warning' : 'negative'}">${trueRate < 0.0001 ? (trueRate*100).toExponential(2) : (trueRate*100).toFixed(4)}%</div>
+    </div>
+    <div class="result-item"><span class="result-label">Visible successes</span><span class="result-value positive">${successes.toLocaleString()}</span></div>
+    <div class="result-item"><span class="result-label">Invisible failures</span><span class="result-value negative">${failures.toLocaleString()}</span></div>
+    <div class="result-item"><span class="result-label">Total who attempted</span><span class="result-value neutral">${total.toLocaleString()}</span></div>
+    <div class="result-item"><span class="result-label">Failures per success</span><span class="result-value warning">${ratio.toFixed(1)}×</span></div>
+    ${bias !== null ? `
+    <div class="result-item"><span class="result-label">Your intuitive estimate</span><span class="result-value">${(intuitive*100).toFixed(1)}%</span></div>
+    <div class="result-item"><span class="result-label">Survivorship bias magnitude</span><span class="result-value ${overEst?'negative':'positive'}">${sign(bias*100)}${(bias*100).toFixed(1)}pp</span></div>
+    <div class="verdict ${overEst ? 'negative' : 'positive'}">
+      ${overEst
+        ? `✗ You overestimated by ${(bias*100).toFixed(1)}pp. The success story represents just 1 in ${Math.round(1/trueRate).toLocaleString()} attempts. For every outcome like this, there were ${Math.round(ratio).toLocaleString()} failures that never got attention.`
+        : `✓ Your estimate is reasonably calibrated. You're accounting for the denominator.`}
+    </div>` : `<div class="verdict neutral">
+      The true success rate is ${(trueRate*100).toFixed(4)}%. For every success story you see, there were approximately ${Math.round(ratio)} invisible failures. Always look for the denominator.
+    </div>`}`;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+
+addEvOutcome('Stay — current salary (guaranteed)', '100', '120000');
+addEvOutcome('Startup — succeeds', '60', '350000');
+addEvOutcome('Startup — fails', '40', '70000');
+document.getElementById('ev-context').value = 'Current role vs startup job offer';
+document.getElementById('ev-unit').value = '€';
+
+initSunkCost();
 </script>
 </body>
 </html>
